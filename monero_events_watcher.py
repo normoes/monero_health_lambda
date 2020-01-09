@@ -78,6 +78,7 @@ class MoneroDaemonWatcher():
 
     def check_daemon(self):
         status = DAEMON_STATUS_UNKNOWN
+        host = "---"
         response = defaultdict(dict)
         errors = {}
 
@@ -85,20 +86,27 @@ class MoneroDaemonWatcher():
         result = daemon_combined_status_check(url=self.url, port=self.port)
         if result:
             for endpoint in (LAST_BLOCK_ENDPOINT, DAEMON_ENDPOINT):
-                # Get possible error.
+                # Get possible errors.
                 if endpoint in result:
                     result_ = result[endpoint]
                     if "error" in result_:
                         errors[endpoint] = result_["error"]
+                    if endpoint == LAST_BLOCK_ENDPOINT and result[endpoint].get("status", status) == DAEMON_STATUS_ERROR:
+                        block_hash = result[endpoint].get("hash", "---")
+                        block_timestamp = result[endpoint].get("block_timestamp", "---")
+                        errors[endpoint].update({"hash": block_hash, "block_timestamp": block_timestamp})
 
             # Get combined 'status'.
             if "status" in result:
-                status = result.pop("status", status)
+                status = result.get("status", status)
+            if "host" in result:
+                host = result.get("host", host)
+
             response.update(result)
 
-        message = f"Daemon status is '{status}'."
+        message = f""
         if status in (DAEMON_STATUS_ERROR, DAEMON_STATUS_UNKNOWN) or errors:
-            data = f"{message} '{json.dumps(errors)}'."
+            data = f"['{status}'] {host}': {json.dumps(errors)}'."
             log.error(data)
             self.trigger(
                 data=data,
@@ -106,7 +114,7 @@ class MoneroDaemonWatcher():
                 debug=self.debug,
             )
         else:
-            log.info(f"{message}")
+            log.info(f"Status is '{status}'.")
 
         return response
 
@@ -154,11 +162,9 @@ def check_daemons(event, context):
 
 if __name__ == "__main__":
     news = check_daemons(event=None, context=None)
-    print()
-    for i, new in enumerate(news):
-        print(f"{i}" + ": " + new.pop("daemon"))
-        if len(new) > 0:
-            for key, value in new.items():
-                print(f" {key}: {value}")
-        else:
-            print("  No news.")
+    # for i, new in enumerate(news):
+    #     if len(new) > 0:
+    #         for key, value in new.items():
+    #             print(f" {key}: {value}")
+    #     else:
+    #         print("  No news.")

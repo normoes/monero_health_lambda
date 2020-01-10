@@ -79,6 +79,8 @@ class MoneroDaemonWatcher():
     def check_daemon(self):
         status = DAEMON_STATUS_UNKNOWN
         host = "---"
+        block_hash = "---"
+        block_timestamp = "---"
         response = defaultdict(dict)
         errors = {}
 
@@ -91,10 +93,9 @@ class MoneroDaemonWatcher():
                     result_ = result[endpoint]
                     if "error" in result_:
                         errors[endpoint] = result_["error"]
-                    if endpoint == LAST_BLOCK_ENDPOINT and result[endpoint].get("status", status) == DAEMON_STATUS_ERROR:
-                        block_hash = result[endpoint].get("hash", "---")
-                        block_timestamp = result[endpoint].get("block_timestamp", "---")
-                        errors[endpoint].update({"hash": block_hash, "block_timestamp": block_timestamp})
+                    if endpoint == LAST_BLOCK_ENDPOINT:
+                        block_hash = result[endpoint].get("hash", block_hash)
+                        block_timestamp = result[endpoint].get("block_timestamp", block_timestamp)
 
             # Get combined 'status'.
             if "status" in result:
@@ -104,17 +105,20 @@ class MoneroDaemonWatcher():
 
             response.update(result)
 
-        message = f""
+        last_block_details = {"hash": block_hash, "block_timestamp": block_timestamp}
+        data = {"status": status, "host": host}
+        data.update(last_block_details)
         if status in (DAEMON_STATUS_ERROR, DAEMON_STATUS_UNKNOWN) or errors:
-            data = f"['{status}'] {host}': {json.dumps(errors)}'."
-            log.error(data)
+            data.update({"errors": errors})
+            data_str = json.dumps(data)
+            log.error(data_str)
             self.trigger(
-                data=data,
+                data=data_str,
                 realm=MONERO_DAEMON_STATUS_REALM,
                 debug=self.debug,
             )
         else:
-            log.info(f"Status is '{status}'.")
+            log.info(json.dumps(data))
 
         return response
 
@@ -153,7 +157,7 @@ def check_daemons(event, context):
         ),
     )
     for daemon, port, events in daemons:
-        log.info(f"Checking: '{daemon}:{port}'.")
+        log.debug(f"Checking: '{daemon}:{port}'.")
         watcher = MoneroDaemonWatcher(url=daemon, port=port, events=events)
         news.append(watcher.check_daemon())
 

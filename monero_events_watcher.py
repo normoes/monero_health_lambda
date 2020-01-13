@@ -80,6 +80,7 @@ class MoneroDaemonWatcher():
         status = DAEMON_STATUS_UNKNOWN
         host = "---"
         block_hash = "---"
+        block_age = -1
         block_timestamp = "---"
         response = defaultdict(dict)
         errors = {}
@@ -96,6 +97,7 @@ class MoneroDaemonWatcher():
                     if endpoint == LAST_BLOCK_ENDPOINT:
                         block_hash = result[endpoint].get("hash", block_hash)
                         block_timestamp = result[endpoint].get("block_timestamp", block_timestamp)
+                        block_age = result[endpoint].get("block_age", block_age)
 
             # Get combined 'status'.
             if "status" in result:
@@ -105,7 +107,7 @@ class MoneroDaemonWatcher():
 
             response.update(result)
 
-        last_block_details = {"hash": block_hash, "block_timestamp": block_timestamp}
+        last_block_details = {"hash": block_hash, "block_timestamp": block_timestamp, "block_age": block_age}
         data = {"status": status, "host": host}
         data.update(last_block_details)
         if status in (DAEMON_STATUS_ERROR, DAEMON_STATUS_UNKNOWN) or errors:

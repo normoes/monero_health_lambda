@@ -12,7 +12,7 @@
         // "role_name": "MyLambdaRole", // Name of Zappa execution role. Default <project_name>-<env>-ZappaExecutionRole. To use a different, pre-existing policy, you must also set manage_roles to false.
         "apigateway_enabled": false, // Set to false if you don't want to create an API Gateway resource. Default true.
         // "apigateway_description": "My funky application!", // Define a custom description for the API Gateway console. Default None.
-        "aws_environment_variables": {"OFFSET": "30", "MATTERMOST_MONERO_URL": "AQICAHjXDZpqefPvg36KSFZlOh+E+Wwt4b/lfhAHIl7LNglkegE8Up3WGFgw3fpnZWpvDX2kAAAAhDCBgQYJKoZIhvcNAQcGoHQwcgIBADBtBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDKZKG8FDkuVb/epjdwIBEIBAmB5BOBi3E7JAv+Lw10xgUdtXbGmRlWLSV+go2QamqwCf7JilChvNty82xF4u9JqGbTJt6YtUdaaCDN3Vbc6ftg==", "MATTERMOST_MONERO_TOKEN": "AQICAHjXDZpqefPvg36KSFZlOh+E+Wwt4b/lfhAHIl7LNglkegG98dmLTBFGPKuIy4bsELETAAAAeDB2BgkqhkiG9w0BBwagaTBnAgEAMGIGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMjmEjj9xy86a4Cm6xAgEQgDXA0iHZdV2h/7KHnV2cpjbsB0W51oZ1gmjLzt/J0HW7F/9pEWlPjM5UiEPQ0+NYhKtC+hYsPA=="}  // A dictionary of environment variables that will be available to your deployed app via AWS Lambdas native environment variables. See also "environment_variables" and "remote_env" . Default {}.
+        "aws_environment_variables": {"HTTP_TIMEOUT": "5", "OFFSET": "30", "MATTERMOST_MONERO_URL": "AQICAHjXDZpqefPvg36KSFZlOh+E+Wwt4b/lfhAHIl7LNglkegE8Up3WGFgw3fpnZWpvDX2kAAAAhDCBgQYJKoZIhvcNAQcGoHQwcgIBADBtBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDKZKG8FDkuVb/epjdwIBEIBAmB5BOBi3E7JAv+Lw10xgUdtXbGmRlWLSV+go2QamqwCf7JilChvNty82xF4u9JqGbTJt6YtUdaaCDN3Vbc6ftg==", "MATTERMOST_MONERO_TOKEN": "AQICAHjXDZpqefPvg36KSFZlOh+E+Wwt4b/lfhAHIl7LNglkegG98dmLTBFGPKuIy4bsELETAAAAeDB2BgkqhkiG9w0BBwagaTBnAgEAMGIGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMjmEjj9xy86a4Cm6xAgEQgDXA0iHZdV2h/7KHnV2cpjbsB0W51oZ1gmjLzt/J0HW7F/9pEWlPjM5UiEPQ0+NYhKtC+hYsPA=="}  // A dictionary of environment variables that will be available to your deployed app via AWS Lambdas native environment variables. See also "environment_variables" and "remote_env" . Default {}.
         "events": [{
            "function": "monero_events_watcher.check_daemons",
            "expression": "rate(2 minutes)"
@@ -27,6 +27,7 @@
        "cloudwatch_data_trace": false, // Logs all data about received events. Default false.
        "cloudwatch_metrics_enabled": false, // Additional metrics for the API Gateway. Default false.
        "xray_tracing": false, // Optional, enable AWS X-Ray tracing on your lambda function.
+       "timeout_seconds": 30, // Maximum lifespan for the Lambda function (default 30, max 900.)
        "debug": false // Print Zappa configuration errors tracebacks in the 500. Default true.
     }
 }

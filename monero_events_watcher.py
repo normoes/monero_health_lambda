@@ -24,6 +24,8 @@ from monero_health import (
     HEALTH_KEY,
     LAST_BLOCK_KEY,
     DAEMON_KEY,
+    DAEMON_P2P_KEY,
+    DAEMON_RPC_KEY,
 )
 
 from eventhooks import MattermostWebHook
@@ -70,13 +72,14 @@ else:
 
 
 class MoneroDaemonWatcher():
-    def __init__(self, url=None, port=None, events=None, debug=False):
+    def __init__(self, url=None, port=None, p2p_port=None, events=None, debug=False):
         self.debug = debug
         self.url = url
         self.port = port
+        self.p2p_port = p2p_port
         self.events = events
 
-    def check_daemon(self):
+    def check_daemon(self, consider_p2p=False):
         status = DAEMON_STATUS_UNKNOWN
         host = "---"
         block_hash = "---"
@@ -86,7 +89,7 @@ class MoneroDaemonWatcher():
         errors = {}
 
         response["daemon"] = f"{self.url}:{self.port}"
-        result = daemon_combined_status_check(url=self.url, port=self.port)
+        result = daemon_combined_status_check(url=self.url, port=self.port, p2p_port=self.p2p_port, consider_p2p=consider_p2p)
         if result:
             for endpoint in (LAST_BLOCK_ENDPOINT, DAEMON_ENDPOINT):
                 # Get possible errors.
@@ -94,6 +97,12 @@ class MoneroDaemonWatcher():
                     result_ = result[endpoint]
                     if "error" in result_:
                         errors[endpoint] = result_["error"]
+                    elif endpoint == DAEMON_ENDPOINT:
+                        if "error" in result_[DAEMON_RPC_KEY]:
+                            errors[endpoint] = {DAEMON_RPC_KEY: result_[DAEMON_RPC_KEY]["error"]}
+                        if "error" in result_[DAEMON_P2P_KEY]:
+                            errors[endpoint] = {DAEMON_P2P_KEY: result_[DAEMON_P2P_KEY]["error"]}
+
                     if endpoint == LAST_BLOCK_ENDPOINT:
                         block_hash = result[endpoint].get("hash", block_hash)
                         block_timestamp = result[endpoint].get("block_timestamp", block_timestamp)
@@ -146,6 +155,7 @@ def check_daemons(event, context):
         # (
         #     "localhost",
         #     "18081",
+        #     "18080",
         #     (
         #         monero_daemon_trigger_status,
         #     ),
@@ -153,15 +163,16 @@ def check_daemons(event, context):
         (
             "node.xmr.to",
             "18081",
+            "18080",
             (
                 monero_daemon_trigger_status,
             ),
         ),
     )
-    for daemon, port, events in daemons:
-        log.debug(f"Checking: '{daemon}:{port}'.")
-        watcher = MoneroDaemonWatcher(url=daemon, port=port, events=events)
-        news.append(watcher.check_daemon())
+    for daemon, rpc_port, p2p_port, events in daemons:
+        log.debug(f"Checking: '{daemon}'.")
+        watcher = MoneroDaemonWatcher(url=daemon, port=rpc_port, p2p_port=p2p_port, events=events)
+        news.append(watcher.check_daemon(consider_p2p=True))
 
     return news
 

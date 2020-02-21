@@ -16,7 +16,7 @@
         "aws_environment_variables": {"HTTP_TIMEOUT": "5", "OFFSET": "30", "MATTERMOST_MONERO_URL": "AQICAHjXDZpqefPvg36KSFZlOh+E+Wwt4b/lfhAHIl7LNglkegE8Up3WGFgw3fpnZWpvDX2kAAAAhDCBgQYJKoZIhvcNAQcGoHQwcgIBADBtBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDKZKG8FDkuVb/epjdwIBEIBAmB5BOBi3E7JAv+Lw10xgUdtXbGmRlWLSV+go2QamqwCf7JilChvNty82xF4u9JqGbTJt6YtUdaaCDN3Vbc6ftg==", "MATTERMOST_MONERO_TOKEN": "AQICAHjXDZpqefPvg36KSFZlOh+E+Wwt4b/lfhAHIl7LNglkegG98dmLTBFGPKuIy4bsELETAAAAeDB2BgkqhkiG9w0BBwagaTBnAgEAMGIGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMjmEjj9xy86a4Cm6xAgEQgDXA0iHZdV2h/7KHnV2cpjbsB0W51oZ1gmjLzt/J0HW7F/9pEWlPjM5UiEPQ0+NYhKtC+hYsPA=="}  // A dictionary of environment variables that will be available to your deployed app via AWS Lambdas native environment variables. See also "environment_variables" and "remote_env" . Default {}.
         "events": [{
            "function": "monero_events_watcher.check_daemons",
-           "expression": "rate(2 minutes)"
+           "expression": "rate(15 minutes)"
        }],
        "exclude": ["*.gz", "*.rar", "*.zip", "__pycache__", "venv", "*.db"], // A list of regex patterns to exclude from the archive. To exclude boto3 and botocore (available in an older version on Lambda), add "boto3*" and "botocore*".
        "vpc_config": { // Optional Virtual Private Cloud (VPC) configuration for Lambda function
